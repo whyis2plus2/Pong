@@ -1,11 +1,9 @@
 CC := gcc
 LD := gcc
 
-SRC_DIR := src
-OUT_DIR := out
-
+SRC_DIR    := src
+OUT_DIR    := out
 RAYLIB_DIR := external/raylib/src
-RAYLIB     := $(RAYLIB_DIR)/libraylib.a
 
 CFLAGS := -Wall
 CFLAGS += -Wextra
@@ -16,22 +14,43 @@ CFLAGS += -Wformat=2
 CFLAGS += -Wno-unused-parameter
 CFLAGS += -Wfloat-equal
 CFLAGS += -Wdouble-promotion
+CFLAGS += -I$(RAYLIB_DIR)
 
-LFLAGS := $(RAYLIB)
+SRC := $(wildcard $(SRC_DIR)/*.c)
+SRC += $(wildcard $(SRC_DIR)/**/*.c)
+SRC += $(wildcard $(SRC_DIR)/**/**/*.c)
+SRC += $(wildcard $(SRC_DIR)/**/**/**/*.c)
 
-SRC := $(wildcard src/*.c)
-SRC += $(wildcard src/**/*.c)
-SRC += $(wildcard src/**/**/*.c)
-SRC += $(wildcard src/**/**/**/*.c)
+LFLAGS := -L$(RAYLIB_DIR) -lraylib
 
-OBJ := $(SRC:%.c=%.o)
-OUT := $(OUT_DIR)/game
+OBJ    := $(SRC:%.c=%.o)
+OUT    := $(OUT_DIR)/game
+RAYLIB := $(RAYBLIB_DIR)/libraylib.a
 
-$(OUT): $(OBJ) $(RAYLIB)
+# assume windows by default
+PLATFORM := WINDOWS
+
+# TODO: add support for other platforms
+ifeq ($(OS),Windows_NT)
+	PLATFORM := WINDOWS
+	LFLAGS += -lopengl32 -lgdi32 -lwinmm
+endif
+
+DEBUG := 1
+ifeq ($(DEBUG),0)
+	CFLAGS += -O2
+        ifeq ($(PLATFORM),WINDOWS)
+		LFLAGS += -mwindows
+        endif
+else
+	CFLAGS += -ggdb -O0
+endif
+
+$(OUT): $(OBJ) | $(RAYLIB)
 	@mkdir -p $(OUT_DIR)
-	$(LD) $(LIBRARY_FLAGS) $^ -o $@
+	$(LD) $^ $(LFLAGS) -o $@
 
-$(RAYLIB):
+$(RAYLIB): 
 	cd $(RAYLIB_DIR); make
 
 $(OBJ)/%.o: $(SRC)/%.c
@@ -44,6 +63,6 @@ clean:
 	rm -rf $(OUT_DIR) $(OBJ)
 	cd $(RAYLIB_DIR); make clean
 
-build: $(OUT)
-all:   $(OUT)
-
+raylib: $(RAYLIB)
+build:  $(OUT)
+all:    $(OUT)
