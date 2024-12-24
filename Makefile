@@ -27,9 +27,6 @@ OBJ    := $(SRC:%.c=%.o)
 OUT    := $(OUT_DIR)/game
 RAYLIB := $(RAYBLIB_DIR)/libraylib.a
 
-# assume windows by default
-PLATFORM := WINDOWS
-
 # TODO: add support for other platforms
 ifeq ($(OS),Windows_NT)
 	PLATFORM := WINDOWS
@@ -39,14 +36,16 @@ endif
 DEBUG := 1
 ifeq ($(DEBUG),0)
 	CFLAGS += -O2
-        ifeq ($(PLATFORM),WINDOWS)
+	ifeq ($(PLATFORM),WINDOWS)
 		LFLAGS += -mwindows
-        endif
+	endif
+	# some things prefer checking for NDEBUG as opposed to DEBUG
+	CFLAGS += -DNDEBUG=1
 else
-	CFLAGS += -ggdb -O0
+	CFLAGS += -ggdb -O0 -DDEBUG=1
 endif
 
-$(OUT): $(OBJ) | $(RAYLIB)
+$(OUT): $(OBJ)
 	@mkdir -p $(OUT_DIR)
 	$(LD) $^ $(LFLAGS) -o $@
 
@@ -56,13 +55,19 @@ $(RAYLIB):
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-run: $(OUT)
+run:
 	./$(OUT)
 
-clean:
+
+cleanapp:
 	rm -rf $(OUT_DIR) $(OBJ)
+
+cleanray:
 	cd $(RAYLIB_DIR); make clean
+
+cleanall:
+	$(MAKE) cleanapp cleanray
 
 raylib: $(RAYLIB)
 build:  $(OUT)
-all:    $(OUT)
+all:    $(RAYLIB) $(OUT)
