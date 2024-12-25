@@ -31,6 +31,14 @@ RAYLIB := $(RAYBLIB_DIR)/libraylib.a
 ifeq ($(OS),Windows_NT)
 	PLATFORM := WINDOWS
 	LFLAGS += -lopengl32 -lgdi32 -lwinmm
+else
+	UNAME := $(shell uname)
+	ifeq ($(UNAME),Linux)
+		PLATFORM := LINUX # set this for good measure
+		LFLAGS += -lGL -lm
+	else
+		PLATFORM := NULL
+	endif
 endif
 
 DEBUG := 1
