@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 		if (CheckCollisionRecs(p1, ball) || CheckCollisionRecs(p2, ball)) ballVel.x = -ballVel.x;
 		if (ball.y <= 0 || ball.y >= 590) ballVel.y = -ballVel.y;
 
-		if (ball.x <= -10 || ball.x >= 800) ball.x = 400;
+		if (ball.x <= -10 || ball.x >= 800) { ball.x = 400; ball.y = 300; /* reset ball position */ }
 
 		ClearBackground(BLACK);
 		
